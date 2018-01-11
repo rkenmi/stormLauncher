@@ -35,92 +35,85 @@
 
 import os
 import sys
-import time
-import pygame
-import usb.core
-from Tkinter import *
+import hid
+
+try:
+    from Tkinter import *
+except ImportError:
+    from tkinter import *
 from PIL import Image, ImageTk
 
 wavFile  = "warcry.wav"
 logoFile = "stormLauncher.png"
 
 class launchControl(Frame):
-   def __init__(self):
-      self.dev = usb.core.find(idVendor=0x2123, idProduct=0x1010)
-      if self.dev is None:
-         raise ValueError('Launcher not found.')
-      if self.dev.is_kernel_driver_active(0) is True:
-         self.dev.detach_kernel_driver(0)
-      self.dev.set_configuration()
+    def __init__(self):
+        hidraw = hid.device(0x2123, 0x1010)
+        hidraw.open(0x2123, 0x1010)
+        self.dev = hidraw
+        if self.dev is None:
+            raise ValueError('Launcher not found.')
 
-      Frame.__init__(self)
-      self.pack()
-      self.master.title("Launch Control")
-      self.master.geometry("400x90")
+        Frame.__init__(self)
+        self.pack()
+        self.master.title("Launch Control")
+        self.master.geometry("400x90")
 
-      self.logo = ImageTk.PhotoImage(Image.open(logoFile))
+        self.logo = ImageTk.PhotoImage(Image.open(logoFile))
 
-      self.panel1 = Label(self, image=self.logo)
-      self.panel1.pack(side='top', fill='both', expand='yes')
-      self.panel1.image = self.logo
+        self.panel1 = Label(self, image=self.logo)
+        self.panel1.pack(side='top', fill='both', expand='yes')
+        self.panel1.image = self.logo
 
-      self.message1 = StringVar()
-      self.line1 = Label(self, textvariable = self.message1)
-      self.message1.set("Aim (arrow keys) & Fire (return)!")
-      self.line1.pack()
+        self.message1 = StringVar()
+        self.line1 = Label(self, textvariable = self.message1)
+        self.message1.set("Aim (arrow keys) & Fire (return)!")
+        self.line1.pack()
 
-      if os.path.isfile(wavFile):
-         self.hasSound = IntVar()
-         self.check1 = Checkbutton(self, text = "Leeroy Jenkins Mode?", variable = self.hasSound, onvalue = 1, offvalue = 0)
-         self.check1.pack()
+        if os.path.isfile(wavFile):
+            self.hasSound = IntVar()
+            self.check1 = Checkbutton(self, text = "Leeroy Jenkins Mode?", variable = self.hasSound, onvalue = 1, offvalue = 0)
+            self.check1.pack()
 
-      self.master.bind("<KeyPress-Up>", self.turretUp)
-      self.master.bind("<KeyRelease-Up>", self.turretStop)
+        self.master.bind("<KeyPress-Up>", self.turretUp)
+        self.master.bind("<KeyRelease-Up>", self.turretStop)
 
-      self.master.bind("<KeyPress-Down>", self.turretDown)
-      self.master.bind("<KeyRelease-Down>", self.turretStop)
+        self.master.bind("<KeyPress-Down>", self.turretDown)
+        self.master.bind("<KeyRelease-Down>", self.turretStop)
 
-      self.master.bind("<KeyPress-Left>", self.turretLeft)
-      self.master.bind("<KeyRelease-Left>", self.turretStop)
+        self.master.bind("<KeyPress-Left>", self.turretLeft)
+        self.master.bind("<KeyRelease-Left>", self.turretStop)
 
-      self.master.bind("<KeyPress-Right>", self.turretRight)
-      self.master.bind("<KeyRelease-Right>", self.turretStop)
+        self.master.bind("<KeyPress-Right>", self.turretRight)
+        self.master.bind("<KeyRelease-Right>", self.turretStop)
 
-      self.master.bind("<KeyPress-Return>", self.turretFire)
+        self.master.bind("<KeyPress-Return>", self.turretFire)
 
-   def turretUp(self, event):
-      self.message1.set("Turret Up.")
-      self.dev.ctrl_transfer(0x21,0x09,0,0,[0x02,0x02,0x00,0x00,0x00,0x00,0x00,0x00]) 
+    def turretUp(self, event):
+        self.message1.set("Turret Up.")
+        self.dev.send_feature_report([0x02,0x02,0x00,0x00,0x00,0x00,0x00,0x00])
 
-   def turretDown(self, event):
-      self.message1.set("Turret Down.")
-      self.dev.ctrl_transfer(0x21,0x09,0,0,[0x02,0x01,0x00,0x00,0x00,0x00,0x00,0x00])
+    def turretDown(self, event):
+        self.message1.set("Turret Down.")
+        self.dev.send_feature_report([0x02,0x01,0x00,0x00,0x00,0x00,0x00,0x00])
 
-   def turretLeft(self, event):
-      self.message1.set("Turret Left.")
-      self.dev.ctrl_transfer(0x21,0x09,0,0,[0x02,0x04,0x00,0x00,0x00,0x00,0x00,0x00])
+    def turretLeft(self, event):
+        self.message1.set("Turret Left.")
+        self.dev.send_feature_report([0x02,0x04,0x00,0x00,0x00,0x00,0x00,0x00])
 
-   def turretRight(self, event):
-      self.message1.set("Turret Right.")
-      self.dev.ctrl_transfer(0x21,0x09,0,0,[0x02,0x08,0x00,0x00,0x00,0x00,0x00,0x00])
+    def turretRight(self, event):
+        self.message1.set("Turret Right.")
+        self.dev.send_feature_report([0x02,0x08,0x00,0x00,0x00,0x00,0x00,0x00])
 
-   def turretStop(self, event):
-      self.dev.ctrl_transfer(0x21,0x09,0,0,[0x02,0x20,0x00,0x00,0x00,0x00,0x00,0x00])
+    def turretStop(self, event):
+        self.dev.send_feature_report([0x02,0x20,0x00,0x00,0x00,0x00,0x00,0x00])
 
-   def turretFire(self, event):
-      self.message1.set("FIRE!")
-
-      if os.path.isfile(wavFile):
-         if self.hasSound.get() == 1:
-            pygame.init()
-            sound = pygame.mixer.Sound("warcry.wav")
-            sound.play()
-            time.sleep(3)
-
-      self.dev.ctrl_transfer(0x21,0x09,0,0,[0x02,0x10,0x00,0x00,0x00,0x00,0x00,0x00])
+    def turretFire(self, event):
+        self.message1.set("FIRE!")
+        self.dev.send_feature_report([0x02,0x10,0x00,0x00,0x00,0x00,0x00,0x00])
 
 
 if __name__ == '__main__':
-   if not os.geteuid() == 0:
-       sys.exit("Script must be run as root.")
-   launchControl().mainloop()
+    if not os.geteuid() == 0:
+        sys.exit("Script must be run as root.")
+    launchControl().mainloop()
