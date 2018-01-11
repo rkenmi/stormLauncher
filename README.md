@@ -4,20 +4,21 @@
 
 Controls the Dream Cheeky [O.I.C Storm](http://www.dreamcheeky.com/storm-oic-missile-launcher) & [Thunder](http://www.dreamcheeky.com/thunder-missile-launcher) USB Missile Launchers.  
 
-There are a few projects for using older launchers in Linux, but I couldn't find any for this launcher, so... enjoy.
+For Mac OS (tested working on Mac OS High Sierra 10.13.1) and Python 3 (3.6.3 works)
 
-This script requires PyUSB 1.0+, apt in Debian/Ubuntu installs 0.4.
+## Requirements
 
-Also, on Debian\Ubuntu systems you need the __python-imaging-tk__
-    
-It also requires that you run it as root unless you want to spend an afternoon playing with udev rules :/
+You need Python 3 for this script. 
+Mac OS only comes with Python 2 by default, so you can install Python 3 with `brew install python3`.
+
 
 ## Getting Started:
 
     git clone git@github.com:nmilford/stormLauncher.git
     cd stormLauncher
+    pip3 install -r requirements.txt
     chmod +x stormLauncher.py
-    sudo ./stormLauncher.py
+    sudo python3 stormLauncher.py
 
 ## Usage:
 
