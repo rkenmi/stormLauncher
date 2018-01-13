@@ -14,10 +14,10 @@ Mac OS only comes with Python 2 by default, so you can install Python 3 with `br
 
 ## Getting Started:
 
-    git clone git@github.com:nmilford/stormLauncher.git
+    git clone git@github.com:rkenmi/stormLauncher.git
     cd stormLauncher
     pip3 install -r requirements.txt
-    chmod +x stormLauncher.py
+    sudo chmod +x stormLauncher.py
     sudo python3 stormLauncher.py
 
 ## Usage:
